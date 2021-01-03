@@ -7,4 +7,4 @@ import os
 DATA_FOLDER = os.path.join(os.getcwd(), "data")
 
 # Set the log file
-OUT_FILE_PATH = os.path.join(os.getcwd(), "scape.log")
+OUT_FILE_PATH = os.path.join(os.getcwd(), "scrape.log")
