@@ -10,6 +10,11 @@
 
 import RPi.GPIO as GPIO
 import time
+import consts
+import wiki
+import os
+import logger
+import random
 
 # define pins
 GREEN_LED = 3
@@ -43,6 +48,45 @@ def testGPIO():
     time.sleep(0.5)
     GPIO.output(BLUE_LED,GPIO.LOW)
 
+def scrapeWiki():
+    pages = ['python','programming','computer','resistor']
+    scraped = []
+    while len(pages) > 0:
+        GPIO.output(GREEN_LED,GPIO.HIGH)
+        nextPage = pages.pop(0)
+        if not nextPage in scraped:
+            # write data to file
+            dataPath = os.path.join(consts.USB_FOLDER,nextPage+".txt")
+            f = open(dataPath,"w+")
+            f.write(wiki.getText(nextPage))
+            f.close()
+
+            # log the success and grab next pages
+            logger.log(nextPage)       
+            newLinks = wiki.getLinks(nextPage)
+            
+            # shuff the links so that it isn't
+            #  geared toward alphabetical searches
+            random.shuffle(newLinks)
+            for p in newLinks:
+                if p in pages:
+                    pages.remove(p)
+                    index = random.randrange(0,len(pages))
+                    pages.insert(index,p)
+                else:
+                    pages.append(p)
+            scraped.append(nextPage)
+        else:
+            logger.log("page already scraped " + nextPage)
+
+        # flip between green and blue to show
+        #  when we are scraping a page
+        GPIO.output(GREEN_LED,GPIO.LOW)
+        GPIO.output(BLUE_LED,GPIO.HIGH)
+        time.sleep(10)
+        GPIO.output(BLUE_LED,GPIO.LOW)
+
 setupGPIO()
 testGPIO()
+scrapeWiki()
 GPIO.cleanup()
